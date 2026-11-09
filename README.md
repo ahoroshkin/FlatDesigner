@@ -1,10 +1,12 @@
 # Обмерка
 
-Текущая версия: **v196**, 09.11.2026.
+Текущая версия: **v197**, 09.11.2026.
 
 Открыть: https://ahoroshkin.github.io/FlatDesigner/
 
-Снимки версий: [v194](obmerka-v194.html), [v195](obmerka-v195.html), [v196](obmerka-v196.html).
+Снимки версий: [v194](obmerka-v194.html), [v195](obmerka-v195.html), [v196](obmerka-v196.html), [v197](obmerka-v197.html).
+
+[Инструкция v197](docs/v197.md): ручки светильников, автосохранение и HTML-копия.
 
 [Инструкция v196](docs/v196.md): режим квартиры, отображение, замеры.
 
@@ -13,6 +15,8 @@
 ## Разработка и публикация
 
 Согласованные изменения сохраняются в локальной папке проекта и в этом репозитории. Главная страница — index.html; каждый выпуск дополнительно хранится в obmerka-vNNN.html. При выпуске обновляется имя кэша в sw.js. После push проверяется удалённый коммит и версия на GitHub Pages.
+
+Сборка v197: `python3 tools/build_v197.py` (основа obmerka-v196.html). Проверка: `node tools/make_test.js obmerka-v197.html`, затем `node tools/t197.js <файл проекта.json>`.
 
 Сборка v196: `python3 tools/build_v196.py` (основа obmerka-v195.html). Проверка переключателя: `node tools/make_test.js obmerka-v196.html`, затем `node tools/t196_entry_view.js <файл проекта.json>`.
 
