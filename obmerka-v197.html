@@ -547,6 +547,7 @@ table.list tr.sel td{background:var(--accent-soft)}
 :root[data-theme="dark"] .filemark.stale{color:#ffcf82}
 @media(max-width:560px){#fileMark{display:none}}
 </style>
+<style>.light-control197{border:1px solid var(--accent);border-radius:9px;padding:9px 12px;margin:0 0 10px;font-size:13px}.light-control197 b{color:var(--accent)}.light-control197 ul{margin:5px 0 0;padding-left:18px}</style>
 <div id="app">
   <div class="topbar">
     <div class="brand">ОБМЕРКА</div>
@@ -8386,6 +8387,7 @@ function render00(){
   }else body = netPlanSVG(S.project,S.view,w,h,P,o);
   if(S.srcGhost&&!stageActive()&&srcOf(S.project)&&(S.vmode==="plan"||S.vmode==="flat")){ const sg=segsOf(srcOf(vp).net), TT=S.view;
     body+=sg.map(q=>{ const a=W2S(TT,q.a), b=W2S(TT,q.b); return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="#888780" stroke-width="${Math.max(2,q.t*TT.s).toFixed(1)}" opacity=".22" stroke-linecap="butt"/>`; }).join(""); }
+  if(vp)body+=lightControlOverlay197(vp,S.view,P);
   el.innerHTML = cmFix(body);
   const step=o.gridStep||1000;
   const sc=`1:${Math.max(1,Math.round(1/S.view.s*3.78))}`;
@@ -11970,7 +11972,7 @@ function divanPick(it,m,k){ const C=m.colors||[]; k=Math.max(0,Math.min(C.length
 function itemUI(r){
   const it=r.items[S.sel.i], c=byType[it.type];
   const ip=itemPos(r,it);
-  let f="";
+  let f=lightControlCard197(r);
   if(!isFree(c) && r.points.length>2){
     const L=ip.L||0, wdt=ip.w||0;
     f+=`<div class="row">
@@ -18412,6 +18414,46 @@ function arrayHandleHit197(r,sp){
   const q=H[k];if(q&&Math.hypot(q[0]-sp[0],q[1]-sp[1])<16)return {kind,i:s.i};
  }
  return null;
+}
+
+// The selection shows the existing control assignment; it never rewires a group.
+function selectedLightControls197(r=room()){
+ const it=S.sel?.kind==='item'&&r?.items[S.sel.i];
+ if(!it||!LIGHT_T.has(it.type))return null;
+ const group=it.lg||'';
+ return {group,keys:group?lgSwitches(S.project,group):[]};
+}
+function controlKey197(s,short=false){
+ const key=short?'К'+(s.k+1):'клавиша '+(s.k+1);
+ if(posts(s.it)<=1)return key;
+ return short?'П'+(s.q+1)+'·'+key:'пост '+(s.q+1)+', '+key;
+}
+function lightControlCard197(r){
+ const selected=selectedLightControls197(r);if(!selected)return '';
+ const {group,keys}=selected;
+ return `<section class="light-control197" data-light-controls197><b>${group?'Управление · '+esc(group):'Управление светом'}</b>${keys.length?
+  '<ul>'+keys.map(s=>`<li>${esc(s.r.name)} · ${esc(controlKey197(s))}${s.pass?' · проходная':''}${s.it.wall!=null?' · стена '+(s.it.wall+1):''}</li>`).join('')+'</ul>':
+  '<div>Выключатель не назначен</div>'}</section>`;
+}
+function lightControlOverlay197(p,T,P){
+ if(stageActive()||!['plan','flat','ceil'].includes(S.vmode)||S.mode==='bind')return '';
+ const selected=selectedLightControls197();if(!selected?.keys.length)return '';
+ const visible=new Set(p.rooms.map(r=>r.id)),marks=new Map();
+ for(const s of selected.keys){
+  if(!visible.has(s.r.id)||(S.vmode==='ceil'&&s.r.id!==S.roomId))continue;
+  const byRoom=marks.get(s.r.id)||new Map();marks.set(s.r.id,byRoom);
+  const hit=byRoom.get(s.it)||[];hit.push(s);byRoom.set(s.it,hit);
+ }
+ const out=[];
+ for(const byRoom of marks.values())for(const keys of byRoom.values()){
+  const first=keys[0],ip=itemPos(first.r,first.it);
+  if(!ip?.pos?.every(Number.isFinite))continue;
+  const [x,y]=W2S(T,ip.pos),[nx,ny]=ip.nrm||[0,-1],a=x+nx*14,b=y+ny*14;
+  const label=keys.map(k=>controlKey197(k,true)).join(' / '),w=Math.max(28,label.length*7+12);
+  const lx=a+nx*(w/2+12),ly=b+ny*22;
+  out.push(`<g data-light-switch197="${esc(first.it.id||'')}" data-light-keys197="${esc(label)}" pointer-events="none"><title>${esc(first.r.name+' · '+keys.map(k=>controlKey197(k)).join(', '))}</title><line x1="${x}" y1="${y}" x2="${lx}" y2="${ly}" stroke="${P.accent}" stroke-width="2"/><circle cx="${a}" cy="${b}" r="10" fill="${P.paper}" stroke="${P.accent}" stroke-width="2.8"/><path d="M ${a-3} ${b+3} l 6 -6" stroke="${P.accent}" stroke-width="2"/><rect x="${lx-w/2}" y="${ly-9}" width="${w}" height="18" rx="7" fill="${P.paper}" stroke="${P.accent}" stroke-width="1.5"/><text x="${lx}" y="${ly+4}" fill="${P.accent}" font-family="Golos Text, sans-serif" font-size="11" text-anchor="middle" font-weight="700">${esc(label)}</text></g>`);
+ }
+ return out.join('');
 }
 
 document.addEventListener("keydown", e=>{ if(V3.open&&e.key==="Escape") close3D(); });

@@ -60,6 +60,10 @@ sub('await idb("projects","readwrite",s=>s.put(p));','await idb("projects","read
 anchor='document.addEventListener("keydown", e=>{ if(V3.open&&e.key==="Escape") close3D(); });'
 sub(anchor,Path('tools/ui_finish_v197.js').read_text()+'\n'+anchor)
 patch_dimensions(sub)
+sub('function itemUI(r){\n  const it=r.items[S.sel.i], c=byType[it.type];\n  const ip=itemPos(r,it);\n  let f="";', 'function itemUI(r){\n  const it=r.items[S.sel.i], c=byType[it.type];\n  const ip=itemPos(r,it);\n  let f=lightControlCard197(r);')
+sub('  el.innerHTML = cmFix(body);','  if(vp)body+=lightControlOverlay197(vp,S.view,P);\n  el.innerHTML = cmFix(body);')
+sub('<div id="app">','<style>.light-control197{border:1px solid var(--accent);border-radius:9px;padding:9px 12px;margin:0 0 10px;font-size:13px}.light-control197 b{color:var(--accent)}.light-control197 ul{margin:5px 0 0;padding-left:18px}</style>\n<div id="app">')
+sub(anchor,Path('tools/light_switch_v197.js').read_text()+'\n'+anchor)
 Path('Дизайн-проект кв. 109 — Шаумяна 14 (v197).html').write_text(s)
 Path('/private/tmp/obm197check.js').write_text(re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',s)[-1])
 print('v197 assembled')
