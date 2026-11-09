@@ -4,3 +4,4 @@ if(typeof roomHomeMap==='function')Object.assign(window.__T,{roomHomeMap,recover
 if(typeof bbCfg195==='function')Object.assign(window.__T,{bbCfg195,bbWrite195,bbApplyModel195,bbStats195,bbSegments195,bbUI195,bbSchedule195,bbPlan195,bbElev195,BB_MODELS195,applyMode,fitRoom195,layerEditable195,policyLayers195,layerOnIt,layerOn,pgModes,WORK_GROUPS,layerOfIt,saveStatus195,putProject,allProjects});
 if(typeof visiblePlan196==='function')Object.assign(window.__T,{visiblePlan196,commonRoom196});
 if(typeof lightPlan196==='function')Object.assign(window.__T,{arrPts});
+if(typeof arrayHandleHit197==='function')Object.assign(window.__T,{saveToFile});
