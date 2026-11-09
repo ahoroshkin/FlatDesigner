@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+from size_display_v197 import patch_dimensions
 
 local=Path('Дизайн-проект кв. 109 — Шаумяна 14 (v196).html')
 source=local if local.exists() else Path('obmerka-v196.html')
@@ -58,6 +59,7 @@ sub('}).catch(e=>{console.warn(e);return null;});','}).catch(e=>{if(strict)throw
 sub('await idb("projects","readwrite",s=>s.put(p));','await idb("projects","readwrite",s=>s.put(p),true);')
 anchor='document.addEventListener("keydown", e=>{ if(V3.open&&e.key==="Escape") close3D(); });'
 sub(anchor,Path('tools/ui_finish_v197.js').read_text()+'\n'+anchor)
+patch_dimensions(sub)
 Path('Дизайн-проект кв. 109 — Шаумяна 14 (v197).html').write_text(s)
 Path('/private/tmp/obm197check.js').write_text(re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',s)[-1])
 print('v197 assembled')

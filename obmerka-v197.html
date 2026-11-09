@@ -5302,7 +5302,7 @@ function planSVGBase0(r,T,W,H,P,o){
   if(o.live!==false&&(r.pins||[]).length) out.push(notePinsSVG(r,T,P));
   // размерные линии стен
   if(n>2 && o.dims!==false && o.thickness===false && S.project&&S.project.netReady){
-    dimOut.push(roomInnerDims(r,T,P,o.dimChain===false));   // план в сети: внутри помещения, от видимой грани до видимой
+    dimOut.push(`<g data-room-dim197="${esc(r.id)}">${roomInnerDims(r,T,P,o.dimChain===false)}</g>`);   // план в сети: внутри помещения, от видимой грани до видимой
   } else if(n>2 && o.dims!==false){
     for(let i=0;i<n;i++){
       const L=segLen(r.points,i); if(L<1) continue;
@@ -5435,7 +5435,7 @@ function planSVGBase0(r,T,W,H,P,o){
       out.push(furnSVG(r,it,c,T,P,col,isSel));
       if(it.fold||it.lift) out.push(foldSVG(r,it,T,P,isSel));
       if(it.type==="inst") out.push(instPlanSVG(r,it,T,P,col));
-      if(S.furnDims && Math.max(B.w,B.d)*T.s>26) out.push(furnDimsSVG(B,T,P,isSel?P.accent:col));
+      if(o.objectDims197!==false && S.furnDims && Math.max(B.w,B.d)*T.s>26) out.push(furnDimsSVG(B,T,P,isSel?P.accent:col));
       if(isSel){
         const cH=W2S(T,[+it.x||0,+it.y||0]);
         out.push(`<circle cx="${cH[0].toFixed(1)}" cy="${cH[1].toFixed(1)}" r="${(10*ZF).toFixed(1)}" fill="${P.paper}" stroke="${P.accent}" stroke-width="2.2" opacity=".95"/>`);
@@ -5489,7 +5489,7 @@ function planSVGBase0(r,T,W,H,P,o){
       return;
     }
     // привязки свободного объекта к двум стенам
-    if(ip.free && n>2 && o.ties!==false && (o.ties!=="sel"||isSel) && !c.furn){
+    if(o.objectDims197!==false && ip.free && n>2 && o.ties!==false && (o.ties!=="sel"||isSel) && !c.furn){
       const rf=itemRefs(r,it,ip.pos);
       rf.forEach(wi=>{
         if(wi>=n) return;
@@ -5539,13 +5539,13 @@ function planSVGBase0(r,T,W,H,P,o){
         +`<text x="${q[0].toFixed(1)}" y="${(q[1]+4*ZF).toFixed(1)}" text-anchor="middle" font-family="Golos Text, sans-serif" font-size="${(11*ZF).toFixed(1)}" fill="${P.accent}">${d}</text>`:"";
       out.push(knob(H.rot,"⟳","rot")+knob(H.sx,"↔","sx")+knob(H.sy,"↕","sy")+knob(H.mv,"+","mv"));
       const A0=arrOf(it), lab=(q,t)=>q?`<text x="${(q[0]+13*ZF).toFixed(1)}" y="${(q[1]+4*ZF).toFixed(1)}" font-family="IBM Plex Mono, monospace" font-size="${(10*ZF*TS).toFixed(1)}" fill="${P.accent}">${t}</text>`:"";
-      out.push(lab(H.sx,"шаг "+mm(A0.sx))+lab(H.sy,"шаг "+mm(A0.sy)));
+      if(o.objectDims197!==false) out.push(lab(H.sx,"шаг "+mm(A0.sx))+lab(H.sy,"шаг "+mm(A0.sy)));
     }
     if(c.array && isArr(it)){                 // ряд или сетка
       const P4=arrPtsAll(it).map(q=>q?W2S(T,q):null);
       P4.forEach(q=>{ if(q) drawSym(q[0],q[1]); });
       const A=arrOf(it);
-      if(labels && S.lightDims!==false && A.n>1){                          // шаги вдоль ряда (v158: гасятся галочкой «Размеры раскладки света» и на плане)
+      if(o.objectDims197!==false && labels && S.lightDims!==false && A.n>1){                          // шаги вдоль ряда (v158: гасятся галочкой «Размеры раскладки света» и на плане)
         for(let j=0;j<A.m;j++) for(let i=0;i<A.n-1;i++){
           const q1=P4[j*A.n+i], q2=P4[j*A.n+i+1];
           if(!q1||!q2) continue;
@@ -5557,7 +5557,7 @@ function planSVGBase0(r,T,W,H,P,o){
           out.push(`<text x="${mx.toFixed(1)}" y="${(my-4*ZF).toFixed(1)}" transform="rotate(${an.toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)})" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${(9.5*ZF*TS).toFixed(1)}" fill="${col}">${mm(A.sx)}</text>`);
         }
       }
-      if(labels && S.lightDims!==false && A.m>1){                          // шаги между рядами: по первой колонке, где обе точки есть
+      if(o.objectDims197!==false && labels && S.lightDims!==false && A.m>1){                          // шаги между рядами: по первой колонке, где обе точки есть
         for(let j=0;j<A.m-1;j++){
           let q1=null,q2=null; for(let i=0;i<A.n;i++){ const a1=P4[j*A.n+i], a2=P4[(j+1)*A.n+i]; if(a1&&a2){ q1=a1; q2=a2; break; } }
           if(!q1||Math.hypot(q2[0]-q1[0],q2[1]-q1[1])<30) continue;
@@ -5567,7 +5567,7 @@ function planSVGBase0(r,T,W,H,P,o){
           out.push(`<text x="${mx.toFixed(1)}" y="${(my-4*ZF).toFixed(1)}" transform="rotate(${an.toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)})" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${(9.5*ZF*TS).toFixed(1)}" fill="${col}">${mm(A.sy)}</text>`);
         }
       }
-      if(labels && S.lightDims!==false && (o.only==="ceiling"||S.vmode==="ceil") && n>2) arrWallDims(r,it,A,T,P,col,out,ZF);        // от стен до крайних точек
+      if(o.objectDims197!==false && labels && S.lightDims!==false && (o.only==="ceiling"||S.vmode==="ceil") && n>2) arrWallDims(r,it,A,T,P,col,out,ZF);        // от стен до крайних точек
     }else{
       for(let q=0;q<cnt;q++){
         const k=-poff+q*pgap;
@@ -5794,7 +5794,7 @@ function netPlanSVGBase0(p,T,W,H,P,o){
     if(!cur) S.sel=null; else S.sel=keep;
     const nm=r.name;
     r.name=(i+1)+". "+r.name;
-    out.push(planSVG(r,T,W,H,P,{grid:false, dims:((cur||o.roomDims)&&o.dims!==false), dimChain:o.dimChain, dimScale:o.dimScale, lgLines:false, verts:false,
+    out.push(planSVG(r,T,W,H,P,{grid:false, dims:((cur||o.roomDims)&&o.dims!==false), objectDims197:!o.screenDims197||((cur||o.roomDims)&&o.dims!==false), dimChain:o.dimChain, dimScale:o.dimScale, lgLines:false, verts:false,
       live:false, arrayEdit197:cur&&o.arrayEdit197, routes:false, labels:o.labels, ties:false, layer:o.layer, thickness:false, floor:false, area:S.roomNames!==false, zoom:o.zoom}));
     r.name=nm;
     if(cur){
@@ -5808,7 +5808,7 @@ function netPlanSVGBase0(p,T,W,H,P,o){
       out.push(innerDimSVG(sd.A,sd.B,outNormal(rr.points,sd.a),14,sd.L,P.accent,true,T,P)); });
   }
   // при перетаскивании стены — ширины помещений в свету по обе стороны
-  if(S.netLive&&S.netLive.widths) S.netLive.widths.forEach(x=>{
+  if(o.dims!==false&&S.netLive&&S.netLive.widths) S.netLive.widths.forEach(x=>{
     const a=W2S(T,x.a), b=W2S(T,x.b);
     out.push(dimSVG(a,b,a,b,x.v,P)); });
   // габарит всего плана по наружным граням — обновляется при любой правке
@@ -5893,7 +5893,7 @@ function netPlanSVGBase0(p,T,W,H,P,o){
     (S.pv.ghost||[]).forEach(g=>{ const a=W2S(T,g[0]), b=W2S(T,g[1]);
       out.push(`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${P.accent}" stroke-width="2.6" stroke-dasharray="7 5"/>`); });
   }
-  if(S.dragDim) out.push(planDragDimSVG(p,T,P));
+  if(o.dims!==false&&S.dragDim) out.push(planDragDimSVG(p,T,P));
   if(!LGHIDE&&(o.lgLines||(o.live!==false&&lgShow()))&&S.project){ out.push(lgLinesSVG(p,T,P,null)); out.push(lgFramesSVG(p,T,null)); }
   if(S.ptpv && S.sheet==="part") (S.ptpv.ghost||[]).forEach(g=>{ const a=W2S(T,g[0]), b=W2S(T,g[1]);
       out.push(`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${P.accent}" stroke-width="3" stroke-dasharray="7 5"/>`); });
@@ -6771,7 +6771,7 @@ function elevPanel(r,i,x0,yF,s,P,opt){
   if(r.__edges&&r.__edges[i]&&r.__edges[i].length>1) r.__edges[i].slice(1).forEach(e=>{ const T=r.__off[e]; if(!(T>0&&T<L)) return;
     o.push(ln(X(T),Y(0),X(T),Y(0)-7,P.ink3,1.2)); o.push(ln(X(T),Y(Hc),X(T),Y(Hc)+7,P.ink3,1.2)); hCuts.push(T); });
   const wide = L*s>112;
-  o.push(tx(X(L/2), Y(Hc)-9*ZF, wide?`СТЕНА ${r.wlab?r.wlab[i]:i+1} · ${mm(L)} × ${mm(Hc)}`:`СТЕНА ${r.wlab?r.wlab[i]:i+1}`, P.ink3, wide?11.5:10.5, "middle"));
+  o.push(tx(X(L/2), Y(Hc)-9*ZF, wide&&opt.dims!==false?`СТЕНА ${r.wlab?r.wlab[i]:i+1} · ${mm(L)} × ${mm(Hc)}`:`СТЕНА ${r.wlab?r.wlab[i]:i+1}`, P.ink3, wide?11.5:10.5, "middle"));
 
   // облицовка — под всем остальным: проёмы и знаки лягут поверх
   if(S.show.tile!==false && opt.noTile!==true) tilesOf(r).filter(z=>(+z.wall||0)===i).forEach((z,zi)=>{
@@ -7001,7 +7001,9 @@ function elevPanel(r,i,x0,yF,s,P,opt){
     });
     if(shown) o.push(tx(X(L), yTop-23*ZF, "у потолка — вынос от стены, мм", P.ink3, 8.5, "end", 400));
   }
-  const DM=P.dim||P.ink2;                                  // v142: размеры — синим
+  if(opt.dims!==false){
+  o.push('<g data-elev-dim197>');
+  const DM=P.dim||P.ink2;
   // размерная цепочка по низу
   const uh=[...new Set(hCuts.map(v=>Math.round(clamp(v,0,L))))].sort((a,b)=>a-b);
   const yB=yF+26*ZF;
@@ -7035,7 +7037,7 @@ function elevPanel(r,i,x0,yF,s,P,opt){
   if(fromR) o.push(tx(X(L)+6, yA+13*ZF, "от угла →", P.ink3, 9, "start", 700));
   else o.push(tx(X(0)-6, yA+13*ZF, "от угла", P.ink3, 9, "end", 700));
   // абсолютные отметки от пола: у каждого элемента своя высота, складывать ничего не нужно
-  if(opt.noV) return o.join("");
+  if(opt.noV){o.push("</g>");return o.join("");}
   const uv=[...new Set(vCuts.map(v=>Math.round(clamp(v,0,Hc))))].sort((a,b)=>b-a);
   const xR=X(0)-20;
   o.push(ln(xR,Y(0),xR,Y(Hc),DM,1));                       // рейка отметок
@@ -7051,6 +7053,7 @@ function elevPanel(r,i,x0,yF,s,P,opt){
     if(v===0)      o.push(tx(X(0)+4, y-5*ZF,  "ПОЛ",     P.ink3, 9, "start"));
     else if(v===Hc)o.push(tx(X(0)+4, y+11*ZF, "ПОТОЛОК", P.ink3, 9, "start"));
   });
+  o.push("</g>");}
   if(opt.noHandle!==true) elevSizeHandles(r,i).forEach(hd=>{ const cx=X(hd.t), cy=Y(hd.h), q=9*ZF, col=P.accent||"#1d6f8f";     // v122
     o.push(`<rect x="${(cx-q).toFixed(1)}" y="${(cy-q).toFixed(1)}" width="${(q*2).toFixed(1)}" height="${(q*2).toFixed(1)}" rx="${(q*0.4).toFixed(1)}" fill="${P.paper}" stroke="${col}" stroke-width="2"/>`);
     o.push(hd.part==="w"?`<path d="M ${cx-q*0.6} ${cy} L ${cx+q*0.6} ${cy} M ${cx-q*0.2} ${cy-q*0.4} L ${cx-q*0.6} ${cy} L ${cx-q*0.2} ${cy+q*0.4} M ${cx+q*0.2} ${cy-q*0.4} L ${cx+q*0.6} ${cy} L ${cx+q*0.2} ${cy+q*0.4}" fill="none" stroke="${col}" stroke-width="1.6"/>`
@@ -7756,7 +7759,7 @@ function thresholds(p){
 }
 let CLIP=0;
 /* пол из нескольких участков: у каждого своя раскладка и свой старт */
-function partsFloorSVG(r,W,H,P,Tin,parts){
+function partsFloorSVG(r,W,H,P,Tin,parts,dims=true){
   const p=S.project;
   const T=Tin||fitBox(outerPoints(r),W,H,FLOOR_PAD);
   const Zf=Tin?zoomFactor(T):1;
@@ -7803,7 +7806,7 @@ function partsFloorSVG(r,W,H,P,Tin,parts){
   });
   const gd=S.guides; S.guides=null;
   const ss=S.sel; if(!Tin) S.sel=null;
-  over+=planSVG(r,T,W,H,P,{only:"floor", verts:false, live:!!Tin, zoom:!!Tin, grid:false, area:false, ties:false, dims:false});
+  over+=planSVG(r,T,W,H,P,{only:"floor", verts:false, live:!!Tin, zoom:!!Tin, grid:false, area:false, ties:false, dims:false, objectDims197:dims});
   S.sel=ss; S.guides=gd;
   over+=`<polygon points="${r.points.map(sc).join(" ")}" fill="none" stroke="${P.ink}" stroke-width="1.6"/>`;
   if(S.cutA){                                      // ведём линию реза
@@ -7825,11 +7828,11 @@ function partRotHandle(r,pt,T){
   const a=(pt.cfg.ang||0)*Math.PI/180;
   return W2S(T,[c[0]+Math.cos(a)*rad, c[1]+Math.sin(a)*rad]);
 }
-function floorSVG1(r,W,H,P,Tin){
+function floorSVG1(r,W,H,P,Tin,dims=true){
   if(r.points.length<3)
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="80"><text x="14" y="46" font-family="Golos Text, sans-serif" font-size="13" fill="${P.ink3}">Сначала постройте контур помещения</text></svg>`;
   const parts=floorParts(S.project,r);
-  if(parts.length>1) return partsFloorSVG(r,W,H,P,Tin,parts);
+  if(parts.length>1) return partsFloorSVG(r,W,H,P,Tin,parts,dims);
   const C=covCalc(S.project,r,parts[0]), F=C.F, t=C.t;
   const outer=[]; t.rooms.forEach(x=>outerPoints(bakeRoom(x)).forEach(q=>outer.push(q)));
   const T=Tin||fitBox(outer,W,H,FLOOR_PAD);
@@ -7861,7 +7864,7 @@ function floorSVG1(r,W,H,P,Tin){
   let over=hfSVG(r,T,P,Zf);
   t.rooms.forEach(x=>{
     const b=bakeRoom(x);
-    over+=planSVG(b,T,W,H,P,{only:"floor", verts:false, live:!!Tin, zoom:!!Tin, grid:false, area:false, ties:false, dims:false});
+    over+=planSVG(b,T,W,H,P,{only:"floor", verts:false, live:!!Tin, zoom:!!Tin, grid:false, area:false, ties:false, dims:false, objectDims197:dims});
     over+=`<polygon points="${b.points.map(sc).join(" ")}" fill="none" stroke="${P.ink}" stroke-width="1.6"/>`;
     if(t.rooms.length>1){
       const c=W2S(T,centroid(b.points));
@@ -7920,17 +7923,17 @@ function mergeAxes(list, tol){
   return out;
 }
 const CEIL_PAD={l:72,r:28,t:36,b:72}, FLOOR_PAD={l:46,r:28,t:56,b:76};
-function ceilSVG1(r,W,H,P,Tin){
+function ceilSVG1(r,W,H,P,Tin,dims=true){
   if(r.points.length<3)
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="80"><text x="14" y="46" font-family="Golos Text, sans-serif" font-size="13" fill="${P.ink3}">Сначала постройте контур помещения</text></svg>`;
   const T=Tin||fitBox(outerPoints(r),W,H,CEIL_PAD);
   const gd=S.guides; S.guides=null;
   const keep=S.sel; if(!Tin) S.sel=null;
   const ghostF=(S.layers.furn!==false&&Tin)?`<g opacity=".9" pointer-events="none" style="mix-blend-mode:multiply">${planSVG(r,T,W,H,P,{furnGhost:true, verts:false, live:false, zoom:!!Tin, grid:false, area:false, ties:false, dims:false})}</g>`:"";   // v112: мебель под светом
-  const body=sgapSVG(r,T,P)+pgapSVG(r,T,P)+(S.project&&S.project.netReady&&!LGHIDE?lgLinesSVG(S.project,T,P,r.id)+lgFramesSVG(S.project,T,r.id):"")+planSVG(r,T,W,H,P,{only:"ceiling", lightsToo:true, verts:false, live:!!Tin, zoom:!!Tin, grid:false, area:false, ties:Tin?"sel":false, dims:false})+ghostF;
+  const body=sgapSVG(r,T,P)+pgapSVG(r,T,P)+(S.project&&S.project.netReady&&!LGHIDE?lgLinesSVG(S.project,T,P,r.id)+lgFramesSVG(S.project,T,r.id):"")+planSVG(r,T,W,H,P,{only:"ceiling", lightsToo:true, verts:false, live:!!Tin, zoom:!!Tin, grid:false, area:false, ties:Tin?"sel":false, dims:false, objectDims197:dims})+ghostF;
   S.sel=keep; S.guides=gd;
   const dc=+r.dropC||0;
-  const cap=`Потолок ${mm(r.ceiling||0)} мм`+(dc?` · подвесной ${mm(dc)} мм`:"");
+  const cap=dims?`Потолок ${mm(r.ceiling||0)} мм`+(dc?` · подвесной ${mm(dc)} мм`:""):"Потолок";
 
   // размерные цепочки по осям элементов, вынесенные за габарит помещения
   const ip=r.points, op=outerPoints(r);
@@ -7942,7 +7945,7 @@ function ceilSVG1(r,W,H,P,Tin){
   const Zc=Tin?zoomFactor(T):1;                      // размеры растут с зумом, в печати — как есть
   const tk=(x,y)=>ln(x-4*Zc,y+4*Zc,x+4*Zc,y-4*Zc,P.dim||P.ink2,1.2);
   let chains="";
-  if(ax.xs.length){
+  if(dims&&ax.xs.length){
     const tolW=Math.max(40, 12/Math.max(T.s,1e-6));
     const uniq=mergeAxes(ax.xs, tolW);
     const cut=mergeAxes([Math.round(bx0), ...uniq, Math.round(bx1)], tolW);
@@ -7961,7 +7964,7 @@ function ceilSVG1(r,W,H,P,Tin){
       if(b-a>26*Zc) chains+=`<text x="${((a+b)/2).toFixed(1)}" y="${(y-4*Zc).toFixed(1)}" text-anchor="middle" font-family="PT Sans Narrow, Arial Narrow, sans-serif" font-size="${(11*Zc).toFixed(1)}" font-weight="700" fill="${P.dim||P.ink2}">${mm(cut[k+1]-cut[k])}</text>`;
     }
   }
-  if(ax.ys.length){
+  if(dims&&ax.ys.length){
     const tolH=Math.max(40, 12/Math.max(T.s,1e-6));
     const uniq=mergeAxes(ax.ys, tolH);
     const cut=mergeAxes([Math.round(by0), ...uniq, Math.round(by1)], tolH);
@@ -7982,7 +7985,7 @@ function ceilSVG1(r,W,H,P,Tin){
   }
   const empty = !ceilItems(r).length
     ? `<text x="${W/2}" y="${(H/2).toFixed(0)}" text-anchor="middle" font-family="Golos Text, sans-serif" font-size="13" fill="${P.ink3}">На потолке пока ничего нет — поставьте свет из левой палитры</text>` : "";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="100%" height="100%" fill="${P.paper}"/>${body}${chains}${empty}`+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="100%" height="100%" fill="${P.paper}"/>${body}${chains?`<g data-ceil-dim197>${chains}</g>`:""}${empty}`+
     `<text x="${W/2}" y="20" text-anchor="middle" font-family="PT Sans Narrow, Arial Narrow, sans-serif" font-size="12" font-weight="700" fill="${P.ink3}">${esc(cap)}</text></svg>`;
 }
 function elevScale(r,W,H){
@@ -8337,7 +8340,7 @@ function render00(){
   el.setAttribute("viewBox",`0 0 ${w} ${h}`);
   el.setAttribute("width",w); el.setAttribute("height",h);
   const P=palette();
-  const vp=visiblePlan196(S.project), o={labels:S.labels, roomDims:!!(S.dimAll||roomsAllOn()), apartment196:vp!==S.project?vp.rooms:null, arrayEdit197:lightPlan196()};
+  const vp=visiblePlan196(S.project), o={labels:S.labels, dims:S.stageDims!==false, roomDims:!!S.dimAll, screenDims197:true, apartment196:vp!==S.project?vp.rooms:null, arrayEdit197:lightPlan196()};
   let body="", pill="";
   const nope=t=>`<rect width="${w}" height="${h}" fill="${P.paper}"/><text x="${w/2}" y="${h/2}" text-anchor="middle" font-family="Golos Text, sans-serif" font-size="14" fill="${P.ink3}">${esc(t)}</text>`;
   if(!r) body="";
@@ -8351,10 +8354,10 @@ function render00(){
     else{
       S.wall=clamp(S.wall|0,0,r.points.length-1);
       const WR=wallRoom(r), K=wrK(WR);
-      body=`<rect width="${w}" height="${h}" fill="${P.paper}"/>`+elevPanel(WR,K,S.view.ox,S.view.oy,S.view.s,P,{zf:elevZF(WR,K,w,h)});
-      if(S.wdim&&S.wdim.i===K){ ZF=elevZF(WR,K,w,h); body+=wallDragDimSVG(S.wdim,S.view,P); }
+      body=`<rect width="${w}" height="${h}" fill="${P.paper}"/>`+elevPanel(WR,K,S.view.ox,S.view.oy,S.view.s,P,{zf:elevZF(WR,K,w,h),dims:o.dims});
+      if(o.dims&&S.wdim&&S.wdim.i===K){ ZF=elevZF(WR,K,w,h); body+=wallDragDimSVG(S.wdim,S.view,P); }
       ZF=1;
-      if(S.wsnap){
+      if(o.dims&&S.wsnap){
         const G=S.wsnap, T=S.view;
         const a=W2SW(T,G.t,G.h);
         const y0=W2SW(T,0,0)[1], y1=W2SW(T,0,G.Hc)[1];
@@ -8375,10 +8378,10 @@ function render00(){
     }
     if(r.points.length<3) S.keyBox=null;
   }else if(S.vmode==="ceil"){
-    body = r.points.length>2 ? stripSVG(ceilSVG(r,w,h,P,S.view)) : nope("Сначала постройте контур помещения");
+    body = r.points.length>2 ? stripSVG(ceilSVG(r,w,h,P,S.view,o.dims)) : nope("Сначала постройте контур помещения");
     pill="Потолок";
   }else if(S.vmode==="floor"){
-    body = r.points.length>2 ? stripSVG(floorSVG(r,w,h,P,S.view)) : nope("Сначала постройте контур помещения");
+    body = r.points.length>2 ? stripSVG(floorSVG(r,w,h,P,S.view,o.dims)) : nope("Сначала постройте контур помещения");
     pill = S.floorHint ? "Пол · "+S.floorHint : "Пол";
   }else body = netPlanSVG(S.project,S.view,w,h,P,o);
   if(S.srcGhost&&!stageActive()&&srcOf(S.project)&&(S.vmode==="plan"||S.vmode==="flat")){ const sg=segsOf(srcOf(vp).net), TT=S.view;
@@ -8565,7 +8568,7 @@ function stageSVG1(p,T,W,H,P,stage,o){
         return "M"+q.map(z=>f(z[0])+" "+f(z[1])).join("L")+"Z"; }).join("");
       out.push(`<g${st.op!=null?` opacity="${st.op}"`:""}><path d="${d}" fill="${st.stroke}" stroke="${st.stroke}" stroke-width="${(st.sw*2).toFixed(1)}" stroke-linejoin="round"${st.dash?` stroke-dasharray="${st.dash}"`:""}/><path d="${d}" fill="${P.paper}"/><path d="${d}" fill="${st.fill}"${st.fo!=null?` fill-opacity="${st.fo}"`:""}/></g>`); });
     labs.forEach(l=>out.push(l)); }
-  if(stage==="src") dgSVG(p,T,P,Z,out);
+  if(stage==="src"&&o.dims!==false) dgSVG(p,T,P,Z,out);
   if(stage==="src"&&S.sel&&S.sel.kind==="srcwallE"&&src){ const w=src.net.walls.find(z=>z.id===S.sel.id), A=w&&src.net.nodes.find(n=>n.id===w.a), B=w&&src.net.nodes.find(n=>n.id===w.b);        // v165: начало (Н) и конец (К) выбранной стены
     if(A&&B){ const a=g([A.x,A.y]), b=g([B.x,B.y]), L=Math.hypot(b[0]-a[0],b[1]-a[1])||1, ux=(b[0]-a[0])/L, uy=(b[1]-a[1])/L;
       [[a,"Н","#2b8a3e",-1],[b,"К","#d9480f",1]].forEach(([q,t,c,sg])=>{ out.push(`<circle cx="${f(q[0])}" cy="${f(q[1])}" r="${(13*Z).toFixed(1)}" fill="${c}" fill-opacity=".18" stroke="${c}" stroke-width="2.4"/>`); out.push(haloText(q[0]+ux*sg*28*Z,q[1]+uy*sg*28*Z+5*Z,t,{size:(15*Z).toFixed(1),weight:800,fill:c,halo:P.paper,hw:(3.4*Z).toFixed(1)})); });
@@ -8580,9 +8583,19 @@ function stageSVG1(p,T,W,H,P,stage,o){
       out.push(`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${P.accent}" stroke-width="${Math.max(5,w.t*T.s).toFixed(1)}" opacity=".35" stroke-linecap="round"/><circle cx="${f(a[0])}" cy="${f(a[1])}" r="5.5" fill="${P.accent}" stroke="${P.paper}" stroke-width="1.4"/>`); } } }
   if(S.demPart&&S.demPart.a!=null){ const w=wallById(p,S.demPart.wid); if(w){ const A=nodeById(p,w.a), B=nodeById(p,w.b); if(A&&B){ const L=Math.hypot(B.x-A.x,B.y-A.y)||1, q=g([A.x+(B.x-A.x)*S.demPart.a/L,A.y+(B.y-A.y)*S.demPart.a/L]); out.push(`<circle cx="${f(q[0])}" cy="${f(q[1])}" r="7" fill="none" stroke="${RED}" stroke-width="2.4"/>`); } } }
   out.push(stageOpeningsSVG(p,T,P,Z,stage==="part"));       // v156: окна и двери на планах «Исходный» и «Перегородки»
-  if(S.stageDims!==false){                          // v155: размеры стен в свету у всех помещений (исходный план / демонтаж / перегородки)
+  if(o.dims!==false){
     let dr=(stage==="part"?(p.rooms||[]):(src?srcRoomsInner(src):[])).filter(r=>r&&r.points&&r.points.length>2);
-    dr.forEach((r,i)=>{ try{ out.push(roomInnerDims(stage==="part"?r:stageDimRoom(p,r),T,P,false)); }catch(e){} }); }
+    if(o.screenDims197&&!o.roomDims){
+      const selected=(p.rooms||[]).find(r=>r.id===S.roomId);
+      if(stage==="part") dr=dr.filter(r=>r===selected);
+      else if(selected?.points?.length>2){
+        const c=centroid(selected.points), walls=new Set((selected.wids||[]).filter(Boolean));
+        const same=r=>new Set((r.wids||[]).filter(id=>walls.has(id))).size;
+        const own=dr.find(r=>inPoly(c,r.points))||dr.reduce((best,r)=>same(r)>(best?same(best):0)?r:best,null);
+        dr=own?[own]:[];
+      }else dr=[];
+    }
+    dr.forEach(r=>{ try{ out.push(`<g data-stage-dim197>${roomInnerDims(stage==="part"?r:stageDimRoom(p,r),T,P,false)}</g>`); }catch(e){} }); }
   const names=stage==="part"?(p.rooms||[]).filter(r=>r.points&&r.points.length>2).map(r=>({name:r.name,c:centroid(r.points),a:polyArea(r.points)})):(src?srcNamedRooms(src):[]);
   names.forEach(r=>{ const c=g(r.c); out.push(haloText(c[0],c[1],esc(r.name),{size:(15*Z).toFixed(1),weight:700,fill:P.ink3,halo:P.paper}));
     out.push(haloText(c[0],c[1]+16*Z,m2(r.a)+" м²",{font:"IBM Plex Mono, monospace",size:(11.5*Z).toFixed(1),fill:P.ink3,halo:P.paper})); });
@@ -9282,7 +9295,7 @@ function roomMenu(){
   const m=$("#rmenu"); if(!m) return;
   if(!m.hidden){ m.hidden=true; return; }
   const allOn=roomsAllOn();
-  m.innerHTML = `<button class="${allOn?"on":""}" data-roomall="1">Все помещения<span style="opacity:.7"> · вся квартира, размеры везде</span></button><div class="sep"></div>` + visibleRooms196().map(r=>{
+  m.innerHTML = `<button class="${allOn?"on":""}" data-roomall="1">Все помещения<span style="opacity:.7"> · вся квартира</span></button><div class="sep"></div>` + visibleRooms196().map(r=>{
     const a=r.points.length>2?` · ${m2(polyArea(r.points))} м²`:" · без контура";
     return `<button class="${r.id===S.roomId&&!allOn?"on":""}" data-room="${r.id}">${esc(r.name)}<span style="opacity:.7">${a}</span></button>`;
   }).join("")
@@ -15924,7 +15937,7 @@ function palClick(e){
 document.addEventListener("pointerdown",e=>{ if(S.uiMode==="office"&&S.palOpen&&S.palG&&!e.target.closest("#lpal,#lpal2,#lpal3")){ S.palG=null; S.palS=null; renderPal(); } });
 $("#rmenu").addEventListener("click",e=>{
   if(e.target.closest("[data-roomcfg]")){ $("#rmenu").hidden=true; openSheet("room"); return; }
-  if(e.target.closest("[data-roomall]")){ $("#rmenu").hidden=true; S.ceilingAll196=S.vmode==="ceil"||lightPlan196(); S.roomsAll=true; S.roomsAllFor=S.roomId; S.sel=null; S.draw=[]; S.mode="view"; if(S.vmode!=="plan"&&S.vmode!=="flat") setVMode("plan"); fitView(); render(); renderRooms(); renderSheet(); hint("Все помещения: вся квартира, размеры стен у каждого помещения",2800); return; }
+  if(e.target.closest("[data-roomall]")){ $("#rmenu").hidden=true; S.ceilingAll196=S.vmode==="ceil"||lightPlan196(); S.roomsAll=true; S.roomsAllFor=S.roomId; S.sel=null; S.draw=[]; S.mode="view"; if(S.vmode!=="plan"&&S.vmode!=="flat") setVMode("plan"); fitView(); render(); renderRooms(); renderSheet(); hint("Показаны все помещения",2800); return; }
   const b=e.target.closest("[data-room]");
   if(b){ $("#rmenu").hidden=true; const returnToCeiling=lightPlan196(); S.roomsAll=false; S.ceilingAll196=false; S.roomId=b.dataset.room; S.sel=null; S.draw=[]; S.mode="view";
     if(returnToCeiling) setVMode("ceil");
@@ -18305,7 +18318,7 @@ layersUI=function(r){
  const box=document.createElement('div');box.innerHTML=layersBase196(r);
  const table=box.querySelector('.layer195'),old=box.querySelector('details');
  const main=document.createElement('section');main.className='display196';
- main.innerHTML=commonSwitch196(S.project)+`<div class="btnrow">${VIEW_PRESETS.map(([k,n,d])=>`<button class="btn" data-act="vpreset" data-pr="${k}" title="${esc(d)}">${n}</button>`).join('')}</div><label class="row"><input type="checkbox" data-labels196 ${S.labels?'checked':''}> Подписи объектов</label><label class="row"><input type="checkbox" id="lay_sdims" ${S.stageDims!==false?'checked':''}> Размеры исходного плана</label><label class="row"><input type="checkbox" id="lay_dimall" ${S.dimAll?'checked':''}> Размеры всех помещений</label>`;
+ main.innerHTML=commonSwitch196(S.project)+`<div class="btnrow">${VIEW_PRESETS.map(([k,n,d])=>`<button class="btn" data-act="vpreset" data-pr="${k}" title="${esc(d)}">${n}</button>`).join('')}</div><label class="row"><input type="checkbox" data-labels196 ${S.labels?'checked':''}> Подписи объектов</label><label class="row"><input type="checkbox" id="lay_sdims" ${S.stageDims!==false?'checked':''}> Показывать размеры</label><label class="row"><input type="checkbox" id="lay_dimall" ${S.dimAll?'checked':''}> Размеры всех помещений <small>· иначе только выбранного</small></label>`;
  const names=box.querySelector('#lay_names');if(names)main.append(names.closest('label'));
  const title=document.createElement('h3');title.textContent='Слои: экран, правка, печать';main.append(title,table);
  if(old){old.querySelectorAll('[id^="lay_"]').forEach(el=>{if(main.querySelector('#'+el.id))el.closest('label')?.remove();});main.append(old);}
@@ -18642,7 +18655,7 @@ function sheetNav(){
   nav.addEventListener("click",e=>{ const x=e.target.closest("[data-snav]"); if(!x) return; const i=+x.dataset.snav;
     if(i<0) b.scrollTo({top:0,behavior:"smooth"}); else b.scrollTo({top:hs[i].offsetTop-b.offsetTop-44,behavior:"smooth"}); });
 }
-document.addEventListener("change",e=>{ if(e.target&&e.target.id==="lay_sdims"){ S.stageDims=e.target.checked; try{ localStorage.setItem("obmerka-sdims",S.stageDims?"1":"0"); }catch(err){} render(); return; } if(e.target&&e.target.id==="lay_dimall"){ S.dimAll=e.target.checked; try{ localStorage.setItem("obmerka-dimall",S.dimAll?"1":"0"); }catch(err){} render(); return; } if(e.target&&e.target.id==="lay_lgb"){ S.lgBind=e.target.checked; try{ localStorage.setItem("obmerka-lgbind",S.lgBind?"1":"0"); }catch(err){} render(); return; } if(e.target&&e.target.id==="lay_dopen"){ S.dimOpen=e.target.checked; try{ localStorage.setItem("obmerka-dopen",S.dimOpen?"1":"0"); }catch(err){} render(); return; } if(e.target&&e.target.id==="kit_pt"){ S.kitPt=+e.target.value||10; try{ localStorage.setItem("obmerka-kitpt",String(S.kitPt)); }catch(err){} hint("Шрифт на листах для мастеров: "+S.kitPt+" pt — применится при следующей печати / PDF",2600); return; } if(e.target&&e.target.id==="lay_ldims"){ S.lightDims=e.target.checked; try{ localStorage.setItem("obmerka-ldims",S.lightDims?"1":"0"); }catch(err){} render(); if(S.vmode!=="ceil") hint("Размеры раскладки видны на вкладке «Свет» / в виде «Потолок»",3000); } });   // меню «Аа» вне карточки
+document.addEventListener("change",e=>{ if(e.target&&e.target.id==="lay_sdims"){ S.stageDims=e.target.checked; document.querySelectorAll("#lay_sdims").forEach(el=>el.checked=S.stageDims); try{ localStorage.setItem("obmerka-sdims",S.stageDims?"1":"0"); }catch(err){} render(); return; } if(e.target&&e.target.id==="lay_dimall"){ S.dimAll=e.target.checked; document.querySelectorAll("#lay_dimall").forEach(el=>el.checked=S.dimAll); try{ localStorage.setItem("obmerka-dimall",S.dimAll?"1":"0"); }catch(err){} render(); return; } if(e.target&&e.target.id==="lay_lgb"){ S.lgBind=e.target.checked; try{ localStorage.setItem("obmerka-lgbind",S.lgBind?"1":"0"); }catch(err){} render(); return; } if(e.target&&e.target.id==="lay_dopen"){ S.dimOpen=e.target.checked; try{ localStorage.setItem("obmerka-dopen",S.dimOpen?"1":"0"); }catch(err){} render(); return; } if(e.target&&e.target.id==="kit_pt"){ S.kitPt=+e.target.value||10; try{ localStorage.setItem("obmerka-kitpt",String(S.kitPt)); }catch(err){} hint("Шрифт на листах для мастеров: "+S.kitPt+" pt — применится при следующей печати / PDF",2600); return; } if(e.target&&e.target.id==="lay_ldims"){ S.lightDims=e.target.checked; try{ localStorage.setItem("obmerka-ldims",S.lightDims?"1":"0"); }catch(err){} render(); if(S.vmode!=="ceil") hint("Размеры раскладки видны на вкладке «Свет» / в виде «Потолок»",3000); } });   // меню «Аа» вне карточки
 /* меню «Аа»: размер, режим, контраст */
 function uiMenu(){
   let m=$("#uimenu"); if(m){ m.remove(); return; }
@@ -18659,7 +18672,7 @@ function uiMenu(){
     <p class="note" style="margin:0 0 8px;font-size:11.5px">Мельче — план разгружается; подписи без места раздвигаются или прячутся (приблизьте — появятся).</p>
     <span class="lbl">Единицы на чертежах</span><div class="seg2"><button data-uiu="mm" class="${UNIT==="mm"?"on":""}">миллиметры</button><button data-uiu="cm" class="${UNIT==="cm"?"on":""}">сантиметры</button></div>
     <p class="note" style="margin:-4px 0 8px;font-size:11.5px">План, развёртки, листы и отчёт. Карточки и поля ввода остаются в миллиметрах.</p>
-    <label style="display:flex;gap:8px;align-items:center;margin:2px 0 8px"><input type="checkbox" id="lay_sdims" ${S.stageDims!==false?"checked":""} style="width:18px;height:18px"> Размеры стен на планах «Исходный план», «Демонтаж», «Перегородки»</label>
+    <label style="display:flex;gap:8px;align-items:center;margin:2px 0 8px"><input type="checkbox" id="lay_sdims" ${S.stageDims!==false?"checked":""} style="width:18px;height:18px"> Показывать размеры</label>
     <label style="display:flex;gap:8px;align-items:center;margin:2px 0 8px"><input type="checkbox" id="lay_dimall" ${S.dimAll?"checked":""} style="width:18px;height:18px"> Размеры стен у всех помещений на плане (иначе — только у выбранного)</label>
     <label style="display:flex;gap:8px;align-items:center;margin:2px 0 8px"><input type="checkbox" id="lay_lgb" ${S.lgBind!==false?"checked":""} style="width:18px;height:18px"> Привязка света к группам и выключателям (линии, рамки, номера групп)</label>
     <label style="display:flex;gap:8px;align-items:center;margin:2px 0 8px"><input type="checkbox" id="lay_dopen" ${S.dimOpen!==false?"checked":""} style="width:18px;height:18px"> Размеры до проёмов (цепочка «стена — проём — стена»)</label>
