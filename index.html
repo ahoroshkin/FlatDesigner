@@ -8678,7 +8678,7 @@ function workPick(id){
   if(id==="rooms"){ soloOff(); if(S.vmode!=="plan"&&S.vmode!=="flat") setVMode("plan"); }
   else if(id==="sock"||id==="sw"||id==="panel"){ S.elecF=id; soloOnly("elec"); }
   else if(id==="wire"){ soloOnly("elec"); openSheet("circ"); }
-  else if(id==="lite"){ soloOff(); setSolo("ceil",false); S.palOpen=true; S.palG="Потолок и свет"; S.palS=null; }
+  else if(id==="lite"){ const all=roomsAllOn(); soloOff(); setSolo("ceil",all); if(all) setVMode("plan"); S.palOpen=true; S.palG="Потолок и свет"; S.palS=null; }
   else if(id==="plumb"){ soloOnly("plumb"); }
   else if(id==="water"){ soloOnly("plumb"); openSheet("pipes"); }
   else if(id==="rad"){ soloOnly("hvac"); }
@@ -9981,7 +9981,7 @@ function netHit(sp){
 }
 function hitTest(sp){
   if(stageActive()) return stageHit(sp);
-  if(S.vmode==="flat") return flatHit(sp);
+  if(S.vmode==="flat"&&!lightPlan196()) return flatHit(sp);
   if(S.vmode==="wall") return hitTestWall(sp);
   const r=room(); if(!r) return null;
   const only=planeMode();
@@ -10011,7 +10011,7 @@ function hitTest(sp){
     for(const rr of visibleRooms196()){
       if(rr===r||!rr.points||rr.points.length<3) continue;
       const hh=hitItemsIn(rr,sp,only,false);
-      if(hh){ S.roomId=rr.id; if(typeof renderRooms==="function") renderRooms(); return hh; }
+      if(hh){ selectLightRoom196(rr.id); if(typeof renderRooms==="function") renderRooms(); return hh; }
     }
   }
   if(only) return null;
@@ -10094,7 +10094,8 @@ function hitItemsIn0(r,sp,only,isCur,skip){
     const it=r.items[i], c=byType[it.type]; if(!c) continue;
     if(c.opening&&planeMode()) continue;
     if(only && itemPlane(r,it)!==only) continue;
-    if(!only&&S.vmode!=="ceil"&&isFree(c)&&!c.furn&&itemPlane(r,it)==="ceiling"){      // свет и всё потолочное — только в режиме «Потолок»
+    if(lightPlan196()&&LIGHT_T.has(it.type)&&(!layerOnIt(r,it)||!layerEditable195(r,it))) continue;
+    if(!only&&S.vmode!=="ceil"&&isFree(c)&&!c.furn&&itemPlane(r,it)==="ceiling"&&!(lightPlan196()&&LIGHT_T.has(it.type))){      // свет и всё потолочное — только в режиме «Потолок»
       const pts=c.linear?(()=>{ const e=linEnds(it); return [e.a,e.b,[(e.a[0]+e.b[0])/2,(e.a[1]+e.b[1])/2]]; })():(c.array&&isArr(it))?arrPts(it):[[+it.x||0,+it.y||0]];
       if(pts.some(q=>{ const g=W2S(T,q); return Math.hypot(g[0]-sp[0],g[1]-sp[1])<R; })&&(!S._chT||Date.now()-S._chT>4000)){
         S._chT=Date.now(); hint("Свет и всё на потолке правится в режиме «Потолок» — кнопка вверху",2800); }
@@ -10463,7 +10464,7 @@ function moveItemHome(i){
   from.items.splice(i,1);
   if(it.wall!=null){ it.wall=null; it.wid=null; it.free=true; }
   host.items.push(it);
-  S.roomId=host.id; S.sel={kind:"item", i:host.items.length-1};
+  selectLightRoom196(host.id); S.sel={kind:"item", i:host.items.length-1};
   renderRooms();
   hint(`Объект переехал в «${host.name}»`,2400);
 }
@@ -15922,6 +15923,7 @@ $("#rmenu").addEventListener("click",e=>{
   if(e.target.closest("[data-roomall]")){ $("#rmenu").hidden=true; S.roomsAll=true; S.roomsAllFor=S.roomId; S.sel=null; S.draw=[]; S.mode="view"; if(S.vmode!=="plan"&&S.vmode!=="flat") setVMode("plan"); fitView(); render(); renderRooms(); renderSheet(); hint("Все помещения: вся квартира, размеры стен у каждого помещения",2800); return; }
   const b=e.target.closest("[data-room]");
   if(b){ $("#rmenu").hidden=true; S.roomsAll=false; S.roomId=b.dataset.room; S.sel=null; S.draw=[]; S.mode="view";
+    if(lightPlan196()) setVMode("ceil");
     fitView(); render(); renderRooms(); renderSheet(); return; }
   if(e.target.closest("[data-addroom]")){
     $("#rmenu").hidden=true;
@@ -18288,6 +18290,12 @@ servicePointHit=function(sp,touch){
 };
 
 /* v196: reuse the existing geometry and permission handlers; only reorganize their UI. */
+const lightPlan196=()=>S.work==='lite'&&S.stage==='final'&&['plan','flat'].includes(S.vmode);
+function selectLightRoom196(id){
+ const keep=lightPlan196()&&roomsAllOn();
+ S.roomId=id;
+ if(keep) S.roomsAllFor=id;
+}
 const layersBase196=layersUI;
 layersUI=function(r){
  const box=document.createElement('div');box.innerHTML=layersBase196(r);

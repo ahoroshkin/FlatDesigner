@@ -1,4 +1,10 @@
 /* v196: reuse the existing geometry and permission handlers; only reorganize their UI. */
+const lightPlan196=()=>S.work==='lite'&&S.stage==='final'&&['plan','flat'].includes(S.vmode);
+function selectLightRoom196(id){
+ const keep=lightPlan196()&&roomsAllOn();
+ S.roomId=id;
+ if(keep) S.roomsAllFor=id;
+}
 const layersBase196=layersUI;
 layersUI=function(r){
  const box=document.createElement('div');box.innerHTML=layersBase196(r);

@@ -30,6 +30,13 @@ sub(': flatRooms(S.project);\n  return V3.scope', ': flatRooms(S.project).filter
 sub('const rs=(S.project.rooms||[]).filter(r=>r.points&&r.points.length>2);\n  sel.innerHTML=', 'const rs=visibleRooms196().filter(r=>r.points&&r.points.length>2);\n  sel.innerHTML=')
 sub('if(T.scope==null||(T.scope!=="all"&&!(S.project.rooms||[]).some(x=>x.id===T.scope)))', 'if(!v3ScopeVisible196(T.scope))')
 sub('const x=V.find(q=>q.id===v); if(!x) return; const T=V3;', 'const x=V.find(q=>q.id===v); if(!x) return; if(!v3ScopeVisible196(x.scope)){hint("Этот ракурс относится к скрытому помещению. Включите «Показывать подъезд».");return;} const T=V3;')
+# The light workspace can use the common plan without losing the ceiling layer.
+sub('else if(id==="lite"){ soloOff(); setSolo("ceil",false);', 'else if(id==="lite"){ const all=roomsAllOn(); soloOff(); setSolo("ceil",all); if(all) setVMode("plan");')
+sub('if(S.vmode==="flat") return flatHit(sp);', 'if(S.vmode==="flat"&&!lightPlan196()) return flatHit(sp);')
+sub('if(!only&&S.vmode!=="ceil"&&isFree(c)&&!c.furn&&itemPlane(r,it)==="ceiling"){', 'if(lightPlan196()&&LIGHT_T.has(it.type)&&(!layerOnIt(r,it)||!layerEditable195(r,it))) continue;\n    if(!only&&S.vmode!=="ceil"&&isFree(c)&&!c.furn&&itemPlane(r,it)==="ceiling"&&!(lightPlan196()&&LIGHT_T.has(it.type))){')
+sub('if(hh){ S.roomId=rr.id; if(typeof renderRooms', 'if(hh){ selectLightRoom196(rr.id); if(typeof renderRooms')
+sub('S.roomId=host.id; S.sel={kind:"item", i:host.items.length-1};', 'selectLightRoom196(host.id); S.sel={kind:"item", i:host.items.length-1};')
+sub('S.roomsAll=false; S.roomId=b.dataset.room; S.sel=null; S.draw=[]; S.mode="view";', 'S.roomsAll=false; S.roomId=b.dataset.room; S.sel=null; S.draw=[]; S.mode="view";\n    if(lightPlan196()) setVMode("ceil");')
 anchor='document.addEventListener("keydown", e=>{ if(V3.open&&e.key==="Escape") close3D(); });'
 sub(anchor,Path('tools/entry_view_v196.js').read_text()+'\n'+Path('tools/ui_ux_v196.js').read_text()+'\n'+anchor)
 Path('Дизайн-проект кв. 109 — Шаумяна 14 (v196).html').write_text(s)
