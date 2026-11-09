@@ -1,5 +1,5 @@
 /* v196: reuse the existing geometry and permission handlers; only reorganize their UI. */
-const lightPlan196=()=>S.work==='lite'&&S.stage==='final'&&['plan','flat'].includes(S.vmode);
+const lightPlan196=()=>S.stage==='final'&&['plan','flat'].includes(S.vmode)&&(S.work==='lite'||S.work==='ceilw'||(S.ceilingAll196&&roomsAllOn()));
 function selectLightRoom196(id){
  const keep=lightPlan196()&&roomsAllOn();
  S.roomId=id;

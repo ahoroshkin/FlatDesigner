@@ -5,6 +5,7 @@ const {pathToFileURL}=require('node:url');
  const input=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
  const b=await chromium.launch();
  try{
+  for(const workspace of ['lite','ceilw','direct']){
   const page=await b.newPage({viewport:{width:1500,height:1000}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   page.setDefaultTimeout(8000);
@@ -14,17 +15,18 @@ const {pathToFileURL}=require('node:url');
   },input.id);
   await page.goto(pathToFileURL(path.join(__dirname,'_test.html')).href);
   await page.waitForFunction(()=>__T.S.project?.rooms?.length);
-  const ids=await page.evaluate(p=>{
+  const ids=await page.evaluate(({p,workspace})=>{
    const T=__T,S=T.S;S.project=p;S.roomId=p.rooms[0].id;
-   T.workPick('lite');
+   if(workspace==='direct'){T.workPick('rooms');T.setVMode('ceil');}
+   else T.workPick(workspace);
    return {mode:S.vmode,room:p.rooms.find(r=>r.name==='Комната 14,7').id};
-  },input);
+  },{p:input,workspace});
   assert.equal(ids.mode,'ceil');
   await page.evaluate(()=>__T.roomMenu());
   await page.locator('[data-roomall]').click();
   assert(await page.evaluate(()=>__T.S.vmode==='plan'&&__T.roomsAllOn()));
-  // Re-entering "Свет" must keep the common plan selected.
-  await page.evaluate(()=>__T.workPick('lite'));
+  // Re-entering the workspace must keep the common plan selected.
+  if(workspace!=='direct') await page.evaluate(w=>__T.workPick(w),workspace);
   const state=()=>page.evaluate(({room})=>{
    const T=__T,S=T.S,r=S.project.rooms.find(r=>r.id===room),it=r.items.find(it=>it.type==='spot');
    const clearance=q=>Math.min(...r.points.map((a,i)=>T.projSeg(q,a,r.points[(i+1)%r.points.length]).dist));
@@ -54,6 +56,8 @@ const {pathToFileURL}=require('node:url');
   await page.locator('[data-room="'+ids.room+'"]').click();
   assert.equal((await state()).mode,'ceil');
   assert.deepEqual(errors,[]);
-  console.log('PASS: full-apartment lighting view, tap and drag across rooms, layer lock and single-room ceiling');
+  console.log('PASS:',workspace,'full-apartment lighting view, tap and drag across rooms, layer lock and single-room ceiling');
+  await page.close();
+  }
  }finally{await b.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

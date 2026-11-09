@@ -8670,7 +8670,7 @@ window.addEventListener("resize",wgClose);
 function workPick(id){
   if(!["src","part"].includes(id)&&S.mode==="wall"){S.mode="view";S.netFrom=null;}
   const p=S.project; if(!p) return; S.structEdit=false;                  // v141: правка конструкции закрывается при смене вкладки const m=$("#rmenu"); if(m) m.hidden=true;
-  S.work=id; S.elecF=null; S.dg=null; S.stage="final"; S.srcEdit=(id==="src"); S.demPart=null; S.mode=S.mode==="wall"?S.mode:"view";
+  S.work=id; S.ceilingAll196=false; S.elecF=null; S.dg=null; S.stage="final"; S.srcEdit=(id==="src"); S.demPart=null; S.mode=S.mode==="wall"?S.mode:"view";
   const soloOnly=k=>{ if(S.solo!==k) setSolo(k,true); S.palOpen=true; S.palG=LAYER_GROUP[k]||null; S.palS=null; if(S.vmode!=="plan"&&S.vmode!=="flat") setVMode("plan"); };
   const soloOff=()=>{ if(S.solo) setSolo(S.solo,true); S.palOpen=false; };
   if(id==="src"||id==="dem"||id==="part"){ soloOff(); if(!srcOf(p)){ srcFreeze(p); save(); hint("Исходный план зафиксирован по текущему состоянию (перезафиксировать — в карточке)",4200); }
@@ -8691,7 +8691,7 @@ function workPick(id){
   else if(id==="ecost"){ soloOff(); openSheet("ecost"); }
   else if(id==="ready"){ soloOff(); openSheet("ready"); }
   else if(id==="cover"){ soloOff(); setVMode("floor"); S.palOpen=true; }
-  else if(id==="ceilw"){ soloOff(); setVMode("ceil"); }
+  else if(id==="ceilw"){ soloOff(); setVMode(roomsAllOn()?"plan":"ceil"); }
   render(); renderRooms(); renderSheet();
 }
 /* ---- v102: правка исходного плана (замера). Углы и стены снимка p.src и текущей сети связаны общими идентификаторами:
@@ -15920,10 +15920,10 @@ function palClick(e){
 document.addEventListener("pointerdown",e=>{ if(S.uiMode==="office"&&S.palOpen&&S.palG&&!e.target.closest("#lpal,#lpal2,#lpal3")){ S.palG=null; S.palS=null; renderPal(); } });
 $("#rmenu").addEventListener("click",e=>{
   if(e.target.closest("[data-roomcfg]")){ $("#rmenu").hidden=true; openSheet("room"); return; }
-  if(e.target.closest("[data-roomall]")){ $("#rmenu").hidden=true; S.roomsAll=true; S.roomsAllFor=S.roomId; S.sel=null; S.draw=[]; S.mode="view"; if(S.vmode!=="plan"&&S.vmode!=="flat") setVMode("plan"); fitView(); render(); renderRooms(); renderSheet(); hint("Все помещения: вся квартира, размеры стен у каждого помещения",2800); return; }
+  if(e.target.closest("[data-roomall]")){ $("#rmenu").hidden=true; S.ceilingAll196=S.vmode==="ceil"||lightPlan196(); S.roomsAll=true; S.roomsAllFor=S.roomId; S.sel=null; S.draw=[]; S.mode="view"; if(S.vmode!=="plan"&&S.vmode!=="flat") setVMode("plan"); fitView(); render(); renderRooms(); renderSheet(); hint("Все помещения: вся квартира, размеры стен у каждого помещения",2800); return; }
   const b=e.target.closest("[data-room]");
-  if(b){ $("#rmenu").hidden=true; S.roomsAll=false; S.roomId=b.dataset.room; S.sel=null; S.draw=[]; S.mode="view";
-    if(lightPlan196()) setVMode("ceil");
+  if(b){ $("#rmenu").hidden=true; const returnToCeiling=lightPlan196(); S.roomsAll=false; S.ceilingAll196=false; S.roomId=b.dataset.room; S.sel=null; S.draw=[]; S.mode="view";
+    if(returnToCeiling) setVMode("ceil");
     fitView(); render(); renderRooms(); renderSheet(); return; }
   if(e.target.closest("[data-addroom]")){
     $("#rmenu").hidden=true;
@@ -18290,7 +18290,7 @@ servicePointHit=function(sp,touch){
 };
 
 /* v196: reuse the existing geometry and permission handlers; only reorganize their UI. */
-const lightPlan196=()=>S.work==='lite'&&S.stage==='final'&&['plan','flat'].includes(S.vmode);
+const lightPlan196=()=>S.stage==='final'&&['plan','flat'].includes(S.vmode)&&(S.work==='lite'||S.work==='ceilw'||(S.ceilingAll196&&roomsAllOn()));
 function selectLightRoom196(id){
  const keep=lightPlan196()&&roomsAllOn();
  S.roomId=id;
