@@ -17183,8 +17183,8 @@ function v3Opening(gp, it, c, sx, T, own, flat, pl){
 /* ---- сборка сцены ---- */
 function v3Rooms(){                                // в проекте по сетке стен помещения стоят в своих координатах — сдвиг сборки не применяем
   const all=S.project&&S.project.netReady
-    ? (S.project.rooms||[]).filter(r=>r.points&&r.points.length>2).map(r=>{ const b=bakeRoom(Object.assign({},r,{pos:null})); b.__src=r; return b; })
-    : flatRooms(S.project);
+    ? visibleRooms196().filter(r=>r.points&&r.points.length>2).map(r=>{ const b=bakeRoom(Object.assign({},r,{pos:null})); b.__src=r; return b; })
+    : flatRooms(S.project).filter(b=>!hideCommon196()||!commonRoom196(b.__src));
   return V3.scope==="all"?all:all.filter(b=>b.__src.id===V3.scope);
 }
 function v3Room(b, root, flat, cnt){
@@ -17560,7 +17560,7 @@ function v3GoTo(p){
 function v3UI(){
   const T=V3, sel=$("#v3room");
   if(T.walk) v3Map();
-  const rs=(S.project.rooms||[]).filter(r=>r.points&&r.points.length>2);
+  const rs=visibleRooms196().filter(r=>r.points&&r.points.length>2);
   sel.innerHTML=`<option value="all"${T.scope==="all"?" selected":""}>Вся квартира</option>`+
     rs.map(r=>`<option value="${r.id}"${T.scope===r.id?" selected":""}>${esc(r.name||"Помещение")}</option>`).join("");
   document.querySelectorAll("#v3d [data-c]").forEach(b=>b.classList.toggle("on",b.dataset.c===T.cam&&(!!T.walk===(b.dataset.c==="walk"||b.dataset.c==="door"))));
@@ -17572,7 +17572,7 @@ function open3D(){
   if(!v3Lib()){ hint("3D-движок не загрузился",3000); return; }
   const T=V3, r=room();
   const ok=r&&r.points&&r.points.length>2;
-  if(T.scope==null||(T.scope!=="all"&&!(S.project.rooms||[]).some(x=>x.id===T.scope))) T.scope="all";   // v110: по умолчанию вся квартира
+  if(!v3ScopeVisible196(T.scope)) T.scope="all";   // v110: по умолчанию вся квартира
   $("#v3d").hidden=false; T.open=true; try{ v3ViewsFill(); }catch(e){}
   try{ v3Init(); v3Size(); v3Build(); v3View(T.cam==="door"?"door":T.cam); }
   catch(e){ console.error(e); hint("3D: "+(e&&e.message||e),4000); }
@@ -17913,7 +17913,7 @@ $("#v3vsave").addEventListener("click",()=>{ const T=V3, p=S.project, V=p.views3
   T.renderer.render(T.scene,T.camera); T.renderer.domElement.toBlob(async b=>{ if(b) await putPhoto("v3_"+id,b); save(); v3ViewsFill(); hint("Ракурс сохранён — он будет в отчёте, лист «3D-виды»",2600); },"image/jpeg",0.88); });
 $("#v3views").addEventListener("change",e=>{ const v=e.target.value, p=S.project, V=p.views3d||[]; e.target.value="";
   if(v==="__del"){ const x=V.pop(); if(x){ try{ delPhoto("v3_"+x.id); }catch(err){} save(); v3ViewsFill(); hint("Ракурс удалён",1400); } return; }
-  const x=V.find(q=>q.id===v); if(!x) return; const T=V3;
+  const x=V.find(q=>q.id===v); if(!x) return; if(!v3ScopeVisible196(x.scope)){hint("Этот ракурс относится к скрытому помещению. Включите «Показывать подъезд».");return;} const T=V3;
   if(x.scope!==T.scope){ T.scope=x.scope; const rs=$("#v3room"); if(rs) rs.value=x.scope; v3Build(); }
   T.camera.position.fromArray(x.cam); T.controls.target.fromArray(x.tg); T.controls.update(); T.dirty=true; });
 $("#v3room").addEventListener("change", e=>{ V3.scope=e.target.value; v3Build(); v3View(V3.cam); });
@@ -18246,6 +18246,7 @@ function hideCommon196(p=S.project){
 }
 const commonView196=Object.create(null);
 const visibleRooms196=(p=S.project)=>hideCommon196(p)?p.rooms.filter(r=>!commonRoom196(r)):p.rooms;
+const v3ScopeVisible196=scope=>scope==="all"||visibleRooms196().some(r=>r.id===scope&&r.points?.length>2);
 function visibleNet196(net,rooms){
  const keep=new Set(),remove=new Set();
  rooms.forEach(r=>(r.wids||[]).forEach(id=>(commonRoom196(r)?remove:keep).add(id)));
@@ -18260,7 +18261,7 @@ function visiblePlan196(p){
 }
 function commonSwitch196(p){
  if(!p?.rooms.some(commonRoom196)||!p.rooms.some(r=>!commonRoom196(r)&&r.points?.length>2))return '';
- return `<label class="row"><input type="checkbox" data-common196 ${hideCommon196(p)?'':'checked'}> Показывать подъезд</label><p class="note">Скрывает общие помещения и участки трасс вне квартиры на экране. Полная длина трасс и чертежи сохраняются.</p>`;
+ return `<label class="row"><input type="checkbox" data-common196 ${hideCommon196(p)?'':'checked'}> Показывать подъезд</label><p class="note">Скрывает подъезд на плане и в 3D, а также участки трасс вне квартиры на плане. Полная длина трасс и чертежи сохраняются.</p>`;
 }
 document.addEventListener('change',e=>{
  if(!e.target.matches('[data-common196]')||!S.project)return;
