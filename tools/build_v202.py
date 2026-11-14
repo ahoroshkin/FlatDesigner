@@ -1,0 +1,41 @@
+from pathlib import Path
+import re
+src=Path('Дизайн-проект кв. 109 — Шаумяна 14 (v201).html')
+if not src.exists():src=Path('obmerka-v201.html')
+s=src.read_text()
+def sub(a,b):
+ global s
+ assert s.count(a)==1,(s.count(a),a[:100])
+ s=s.replace(a,b,1)
+sub('const APP_VER="v201", APP_DATE="12.11.2026";','const APP_VER="v202", APP_DATE="14.11.2026";')
+sub('const rooms=(p.rooms||[]).filter(r=>r.points&&r.points.length>2&&(only?only.has(r.id):!eo[r.id]));','const rooms=(p.rooms||[]).filter(r=>r.points&&r.points.length>2&&!commonRoom196(r)&&(only?only.has(r.id):!eo[r.id]));\n  p=estimateScope202(p,rooms);')
+sub('A.wallA+=Math.max(0, per*hFin-openA);','const audit202=wallAudit202(p,r),ck202=ceilingKind202(p,r);\n    A.wallA+=audit202.area;\n    A.plaster202=(A.plaster202||0)+(r.plast?.on===false?0:audit202.plaster);\n    A.mesh202=(A.mesh202||0)+audit202.mesh;')
+sub('A.ceilA+=area; if(dc>0&&dc<H) A.dropA+=area;','if(ck202==="paint") A.ceilA+=area;\n    if(ck202==="stretch"||ck202==="suspended") A.dropA+=area;')
+sub('const wA=Math.max(0, per*hFin-openA)/1e6;','const wA=audit202.area/1e6;\n    const prep202=wA+(ck202==="paint"?area/1e6:0);')
+# The same eligible area drives all preparation quantities.
+s=s.replace('A.puttyA+=wA+area/1e6;','A.puttyA+=prep202;')
+s=s.replace('(wA+area/1e6)*','prep202*')
+sub('R("plast.area","Штукатурка стен по маякам","м²",PL.area/1e6, PL.area?"средний слой "+Math.round(PL.tA/Math.max(1,PL.area))+" мм":""),','R("plast.area","Штукатурка стен по маякам","м²",(A.plaster202||0)/1e6, "До перекрытия; по включённым стенам. Проверьте исключение ГКЛ и других поверхностей."),\n      R("plast.prime.work","Грунтование стен под штукатурку","м²",(A.plaster202||0)/1e6),\n      R("plast.mesh.work","Монтаж сетки на пеноблочные стены","м²",(A.mesh202||0)/1e6,"По отмеченным сторонам, с вычетом проёмов; без нахлёстов."),')
+sub('R("plast.mesh.work","Монтаж сетки на пеноблочные стены","м²",(A.mesh202||0)/1e6,"По отмеченным сторонам, с вычетом проёмов; без нахлёстов."),','R("plast.mesh.work","Монтаж сетки по пеноблокам и заходам на бетон","м²",(A.mesh202||0)/1e6,"Обработанные стороны и заходы; проёмы вычтены, перекрытия объединены."),\n      R("plast.mesh.material","Сетка по пеноблокам и заходам на бетон","м²",(A.mesh202||0)/1e6,"Площадь покрытия. Запас на нахлёсты полотен и отходы добавить отдельно."),')
+sub('R("putty.area","Поверхность под шпаклёвку","м²",A.puttyA,"стены за вычетом проёмов и потолок"),','R("putty.area","Шпаклёвка выбранных стен и окрашиваемых потолков","м²",A.puttyA,"Натяжные и подвесные потолки исключены; проверьте отделку стен."),')
+sub('const eo=estOff(p), rs=(p.rooms||[]).filter(r=>r.points&&r.points.length>2), on=rs.filter(r=>!eo[r.id]).length;','const eo=estOff(p), rs=(p.rooms||[]).filter(r=>r.points&&r.points.length>2&&!commonRoom196(r)), on=rs.filter(r=>!eo[r.id]).length;')
+sub('function estByStage(p){ const E=estimate(p),','function estByStage(p){ p=estimateScope202(p); const E=estimate(p),')
+sub('return estRoomsUI(p)+`<p class="note" style="margin-top:0">Объёмы посчитаны по обмеру:', 'return estimateOptions202(p)+estRoomsUI(p)+`<p class="note" style="margin-top:0">Объёмы посчитаны по обмеру:')
+sub('const area=Math.max(0,L*H-cuts.reduce((a,c)=>a+(c.t2-c.t1)*(c.h2-c.h1),0));','const area=Math.max(0,L*H-cutArea202(cuts));')
+sub('H=(dc>0&&dc<H0)?Math.min(H0,dc+100):H0','H=ceilingKind202(S.project||{},src)==="stretch"?H0:(dc>0&&dc<H0)?Math.min(H0,dc+100):H0')
+sub('R("ceil.area","Отделка потолка","м²",A.ceilA/1e6)','R("ceil.area","Подготовка / отделка окрашиваемого потолка","м²",A.ceilA/1e6)')
+sub('Материал (новая стена — в смету)','Материал возведения новой стены — кладка')
+sub('const c=pr[row.k]||{};','const c=row.k==="wall.area"?{}:pr[row.k]||{};')
+sub('R("wall.area","Отделка стен","м²",A.wallA/1e6,"за вычетом проёмов")','R("wall.area","Площадь стен — справочно","м²",A.wallA/1e6,"За вычетом проёмов. Расценка не начисляется: работы считаются отдельными строками.")')
+sub('data-pf="m" value="${row.pm||""}"','data-pf="m" ${row.k==="wall.area"?"disabled":""} value="${row.pm||""}"')
+sub('data-pf="w" value="${row.pw||""}"','data-pf="w" ${row.k==="wall.area"?"disabled":""} value="${row.pw||""}"')
+# A single action downloads the same estimate shown in the application.
+sub('<button class="btn" data-act="csv">Ведомость (CSV)</button>','<button class="btn pri" data-xlsx202>Скачать смету Excel (.xlsx)</button><button class="btn" data-act="csv">Обмерная ведомость (CSV, без цен)</button>')
+sub('<div id="app">','<style>.estimate202{border:1px solid var(--accent);border-radius:10px;padding:12px;margin-bottom:12px}.estimate202 p{font-size:12px;line-height:1.4}.estimate202 .scrollx{overflow:auto}.estimate202 select{min-width:105px}.estimate202 h4{margin:14px 0 7px}</style><div id="app">')
+anchor='document.addEventListener("keydown", e=>{ if(V3.open&&e.key==="Escape") close3D(); });'
+sub(anchor,Path('tools/estimate_v202.js').read_text()+'\n'+anchor)
+sub('<section id="h12">','<section id="h12"><h3>Смета и Excel (v202)</h3><p>Общие помещения исключены из сметы независимо от отображения подъезда. Для квартиры 109 по умолчанию выбран натяжной потолок, его шпаклёвка не начисляется. Тип потолка и обработанные сеткой стены задаются в смете, «Площади стен, потолки и сетка». Пересекающиеся проёмы вычитаются один раз. Объёмы стен до перекрытия и проёмы раскрыты в Excel на отдельном листе. Кнопка «Скачать смету Excel (.xlsx)» находится в смете и чертежах. Цены берутся из проекта, незаполненные отмечены; до проверки поверхностей и расценок смета предварительная. CSV оставлен только как обмерная ведомость без цен.</p>')
+sub('<h3>Смета и Excel (v202)</h3>','<h3>Смета и Excel (v202)</h3><p>В свойствах каждой стены доступен материал для расчёта отделки: бетон, пеноблок / газобетон, кирпич, ПГП, ГКЛ или другой. Материал общий для обеих сторон, толщину и положение не меняет. Он не создаёт новую кладку в смете. В настройках сметы заход сетки на соседний бетон задаётся от 0,5 до 1 м. Площадь полос считается с вычетом проёмов и объединением пересечений; нестандартные Т-примыкания проверяются отдельно. Материалы и площади сетки включены в Excel.</p>')
+Path('Дизайн-проект кв. 109 — Шаумяна 14 (v202).html').write_text(s)
+Path('/private/tmp/obm202check.js').write_text(re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',s)[-1])
+print('v202 assembled')
