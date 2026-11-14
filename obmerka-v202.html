@@ -18652,7 +18652,9 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('click',e=>{if(e.target.closest('[data-xlsx202]'))exportEstimate202();});
 const renderMaterialBase202=renderSheet;renderSheet=function(){
- renderMaterialBase202();if(!['netwall','srcwallE','wall'].includes(S.sheet)||!['netwall','srcwall','srcwallE','wall'].includes(S.sel?.kind))return;
+ renderMaterialBase202();
+ if(S.sheet==='ecost'){const body=document.getElementById('sheetBody');if(body&&!body.querySelector('[data-xlsx202]'))body.insertAdjacentHTML('afterbegin',estimateOptions202(S.project));}
+ if(!['netwall','srcwallE','wall'].includes(S.sheet)||!['netwall','srcwall','srcwallE','wall'].includes(S.sel?.kind))return;
  const r=room(),id=S.sel.id||(r?.wids||[])[S.sel.i];if(!id)return;
  const body=document.getElementById('sheetBody');if(!body||body.querySelector('[data-material-card202]'))return;
  body.insertAdjacentHTML('afterbegin',`<section class="estimate202" data-material-card202><label class="field"><span>Материал стены — для расчёта отделки</span>${materialSelect202(wallMaterial202(S.project,id),`data-material202="${esc(JSON.stringify([id]))}"${S.ro||window.OBM_RO||S.editLayers195?.obmer===false?' disabled':''}`)}</label><p>Толщина и положение не меняются. Материал общий для обеих сторон стены. Сетка на пеноблоках и заходы на бетон учитываются в смете.</p></section>`);
@@ -18664,7 +18666,7 @@ function zip202(files){
  const enc=new TextEncoder(),table=Array.from({length:256},(_,n)=>{for(let i=0;i<8;i++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
  const crc=b=>{let c=0xffffffff;for(const v of b)c=table[(c^v)&255]^(c>>>8);return (c^0xffffffff)>>>0;},parts=[],central=[];let offset=0;
  const header=(n)=>{const b=new Uint8Array(n);return {b,d:new DataView(b.buffer)};};
- for(const [name,text] of Object.entries(files)){const n=enc.encode(name),b=enc.encode(text),c=crc(b),h=header(30);h.d.setUint32(0,0x04034b50,true);h.d.setUint16(4,20,true);h.d.setUint16(6,0x800,true);h.d.setUint32(14,c,true);h.d.setUint32(18,b.length,true);h.d.setUint32(22,b.length,true);h.d.setUint16(26,n.length,true);parts.push(h.b,n,b);const z=header(46);z.d.setUint32(0,0x02014b50,true);z.d.setUint16(4,20,true);z.d.setUint16(6,20,true);z.d.setUint16(8,0x800,true);z.d.setUint32(16,c,true);z.d.setUint32(20,b.length,true);z.d.setUint32(24,b.length,true);z.d.setUint16(28,n.length,true);z.d.setUint32(42,offset,true);central.push(z.b,n);offset+=30+n.length+b.length;}
+ for(const [name,text] of Object.entries(files)){const n=enc.encode(name),b=enc.encode(text),c=crc(b),h=header(30);h.d.setUint32(0,0x04034b50,true);h.d.setUint16(4,20,true);h.d.setUint16(6,0x800,true);h.d.setUint16(12,0x21,true);h.d.setUint32(14,c,true);h.d.setUint32(18,b.length,true);h.d.setUint32(22,b.length,true);h.d.setUint16(26,n.length,true);parts.push(h.b,n,b);const z=header(46);z.d.setUint32(0,0x02014b50,true);z.d.setUint16(4,20,true);z.d.setUint16(6,20,true);z.d.setUint16(8,0x800,true);z.d.setUint16(14,0x21,true);z.d.setUint32(16,c,true);z.d.setUint32(20,b.length,true);z.d.setUint32(24,b.length,true);z.d.setUint16(28,n.length,true);z.d.setUint32(42,offset,true);central.push(z.b,n);offset+=30+n.length+b.length;}
  const size=central.reduce((s,b)=>s+b.length,0),end=header(22),count=Object.keys(files).length;end.d.setUint32(0,0x06054b50,true);end.d.setUint16(8,count,true);end.d.setUint16(10,count,true);end.d.setUint32(12,size,true);end.d.setUint32(16,offset,true);return new Blob([...parts,...central,end.b],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 }
 function excel202(sheets){

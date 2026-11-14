@@ -1,7 +1,8 @@
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
 (async()=>{const b=await chromium.launch();try{
 const page=await b.newPage({viewport:{width:1500,height:1000},acceptDownloads:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>localStorage.setItem('obmerka-tour','1'));await page.goto('file://'+path.join(__dirname,'_test.html'));await page.waitForFunction(()=>window.__T?.S.project);
-const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));const inspect=await page.evaluate(p=>{const T=__T;T.S.project=p;T.S.roomId=p.rooms[1].id;T.workPick('ecost');T.openSheet('cost');const E=T.estimate(p);return {A:E.A,rooms:p.rooms.slice(0,4).map(r=>({name:r.name,A:T.estimate(p,new Set([r.id])).A})),groups:E.groups,net:p.net};},p);
+const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));const inspect=await page.evaluate(p=>{const T=__T;T.S.project=p;T.S.roomId=p.rooms[1].id;T.workPick('ecost');const E=T.estimate(p);return {A:E.A,rooms:p.rooms.slice(0,4).map(r=>({name:r.name,A:T.estimate(p,new Set([r.id])).A})),groups:E.groups,net:p.net};},p);
+assert.equal(await page.locator('[data-xlsx202]').count(),1,'Excel available directly in Results / stage estimate');await page.evaluate(()=>__T.openSheet('cost'));
 assert(Math.abs(inspect.A.wallA/1e6-162.0772182271015)<1e-6);assert.equal(inspect.A.ceilA,0);assert(Math.abs(inspect.A.dropA/1e6-56.483712)<1e-6);assert(Math.abs(inspect.A.puttyA-162.0772182271015)<1e-6);assert.deepEqual(inspect.net,p.net);
 const row=k=>inspect.groups.flatMap(g=>g.rows).find(x=>x.k===k);assert(Math.abs(row('plast.area').q-162.0772182271015)<1e-6);assert.equal(row('plast.mesh.work'),undefined);
 assert(!inspect.groups.flatMap(g=>g.rows).some(x=>/Лифт|сплит-шахт/.test(x.n)));
